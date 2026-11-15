@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kirana Khata · Login</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f4f5fb;color:#1b1f2a;font:15px system-ui,-apple-system,"Segoe UI",sans-serif}
+.box{width:min(380px,92vw);background:#fff;border:1px solid #e8eaf0;border-radius:18px;padding:28px;box-shadow:0 8px 30px rgba(16,24,40,.1)}
+.logo{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:700;margin:0 auto 10px}
+h2{text-align:center;margin:0}
+.sub{text-align:center;color:#6b7280;margin:4px 0 18px}
+.tabs{display:flex;gap:6px;margin-bottom:14px}
+.tabs button{flex:1;padding:8px;border:1px solid #e8eaf0;background:#fff;color:#1b1f2a;border-radius:10px;cursor:pointer;font:inherit}
+.tabs button.on{background:#4f46e5;color:#fff;border-color:#4f46e5}
+label{display:block;font-size:13px;color:#6b7280;margin:8px 0 4px}
+input{display:block;width:100%;padding:12px 14px;border-radius:10px;border:1px solid #c9cdd8;
+ background:#fff;color:#111;-webkit-text-fill-color:#111;caret-color:#111;font:inherit}
+input:focus{outline:2px solid rgba(79,70,229,.4)}
+input:-webkit-autofill{-webkit-text-fill-color:#111;-webkit-box-shadow:0 0 0 100px #fff inset}
+.show{margin-top:6px;font-size:13px;color:#4f46e5;cursor:pointer;user-select:none}
+.show input{display:inline;width:auto;margin-right:6px}
+.hide{display:none}
+.go{width:100%;margin-top:16px;padding:12px;border:0;border-radius:10px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;font:inherit;font-weight:600;cursor:pointer}
+#err{color:#dc2626;min-height:20px;margin-top:10px;font-size:14px}
+</style></head><body>
+<div class="box">
+  <div class="logo">₹</div>
+  <h2>Kirana Khata</h2>
+  <p class="sub">Apni dukaan ka voice khata</p>
+  <div class="tabs">
+    <button type="button" id="t1" class="on">Login</button>
+    <button type="button" id="t2">Create account</button>
+  </div>
+
+  <form id="f" autocomplete="on">
+    <div id="shopWrap" class="hide">
+      <label for="shop">Shop name</label>
+      <input id="shop" name="shop" type="text" placeholder="Sharma General Store">
+    </div>
+    <div id="emailWrap" class="hide">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" placeholder="you@example.com">
+    </div>
+
+    <label for="u" id="ulabel">Username or email</label>
+    <input id="u" name="username" type="text" autocomplete="username">
+
+    <label for="pw">Password (min 6 characters)</label>
+    <input id="pw" name="password" type="password" autocomplete="current-password">
+    <label class="show"><input type="checkbox" id="eye">Show password</label>
+
+    <div id="err"></div>
+    <button class="go" id="go" type="submit">Login</button>
+  </form>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let signup = false;
+
+function mode(s) {
+  signup = s;
+  $('t1').classList.toggle('on', !s);
+  $('t2').classList.toggle('on', s);
+  $('shopWrap').classList.toggle('hide', !s);
+  $('emailWrap').classList.toggle('hide', !s);
+  $('ulabel').textContent = s ? 'Username' : 'Username or email';
+  $('pw').autocomplete = s ? 'new-password' : 'current-password';
+  $('go').textContent = s ? 'Create account' : 'Login';
+  $('err').textContent = '';
+}
+$('t1').onclick = () => mode(false);
+$('t2').onclick = () => mode(true);
+$('eye').onchange = () => { $('pw').type = $('eye').checked ? 'text' : 'password'; };
+
+$('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  $('err').textContent = '';
+  const body = {
+    username: $('u').value,
+    password: $('pw').value,
+    email: $('email').value,
+    shop_name: $('shop').value
+  };
+  if (!body.password) { $('err').textContent = 'Password is empty'; return; }
+  try {
+    const r = await fetch(signup ? '/signup' : '/login', {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
+    });
+    if (r.ok) { location.href = '/'; return; }
+    const d = await r.json().catch(() => ({}));
+    $('err').textContent = typeof d.detail === 'string' ? d.detail : 'Check your details';
+  } catch (x) { $('err').textContent = 'Server not reachable'; }
+});
+</script>
+</body></html>
